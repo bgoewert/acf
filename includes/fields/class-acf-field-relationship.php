@@ -28,6 +28,7 @@ if ( ! class_exists( 'acf_field_relationship' ) ) :
 				'elements'             => array(),
 				'return_format'        => 'object',
 				'bidirectional_target' => array(),
+				'default_value'        => '',
 			);
 			add_filter( 'acf/conditional_logic/choices', array( $this, 'render_field_relation_conditional_choices' ), 10, 3 );
 
@@ -618,6 +619,21 @@ if ( ! class_exists( 'acf_field_relationship' ) ) :
 					'layout'       => 'horizontal',
 				)
 			);
+
+
+			// encode default values (convert from array)
+			$field['default_value'] = acf_encode_choices( $field['default_value'], false );
+
+			// default_value
+			acf_render_field_setting(
+				$field,
+				array(
+					'label'        => __( 'Default Value', 'acf' ),
+					'instructions' => __( 'Enter each default post ID on a new line', 'acf' ),
+					'name'         => 'default_value',
+					'type'         => 'textarea',
+				)
+			);
 		}
 
 		/**
@@ -758,6 +774,27 @@ if ( ! class_exists( 'acf_field_relationship' ) ) :
 			return $valid;
 		}
 
+		/**
+		 *
+		 * This filter is appied to the $field before it is saved to the database
+		 *
+		 * @type	filter
+		 * @since   6.3.11
+		 * @date    2025-01-16
+		 *
+		 * @param   $field - the field array holding all the field options
+		 * @param   $post_id - the field group ID (post_type = acf)
+		 *
+		 * @return  $field - the modified field
+		 */
+		function update_field( $field ) {
+
+			// decode choices (convert to array)
+			$field['default_value'] = acf_decode_choices( $field['default_value'], true );
+
+			// return
+			return $field;
+		}
 
 		/**
 		 * Filters the field value before it is saved into the database.
